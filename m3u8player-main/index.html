@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <title>m3u8播放器</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="M3U8Player播放器，用于m3u8文件的在线播放">
+
+    <!-- Local jQuery instead of CDN -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js" integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4=" crossorigin="anonymous"></script>
+
+    <!-- Local Tailwind CSS instead of CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#3b82f6',
+                        secondary: '#64748b',
+                        accent: '#f59e0b'
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- Language files -->
+    <script defer src="js/en.js"></script>
+    <script defer src="js/fr.js"></script>
+    <script defer src="js/zh.js"></script>
+    <script defer src="js/language-manager.js"></script>
+
+    <!-- Local social-share instead of CDN -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/css/share.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/social-share.js@1.0.16/dist/js/social-share.min.js"></script>
+
+    <!-- Local Tencent Cloud Player instead of CDN -->
+    <link href="https://web.sdk.qcloud.com/player/tcplayer/release/v5.1.0/tcplayer.min.css" rel="stylesheet" />
+    <script src="https://web.sdk.qcloud.com/player/tcplayer/release/v5.1.0/tcplayer.v5.1.0.min.js"></script>
+
+ 
+
+    <style>
+        /* Custom styles for enhanced Tailwind experience */
+        .gradient-bg {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        .glass-effect {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .shadow-glow {
+            box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
+        }
+        
+        .animate-float {
+            animation: float 3s ease-in-out infinite;
+        }
+        
+        .animate-pulse-slow {
+            animation: pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+        }
+        
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
+        
+        @media screen and (max-width: 640px){
+            #player-container-id {
+                height: 200px!important;
+            }
+        }
+        
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+        }
+        
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+    </style>
+
+
+</head>
+
+<body class="bg-gray-50 min-h-screen">
+
+    <!-- Modern Header with Glass Effect -->
+    <header class="gradient-bg sticky top-0 z-50 shadow-lg">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex items-center justify-between h-16">
+                <!-- Navigation Links -->
+                <div class="flex items-center space-x-8">
+                    <a href="index.html" class="text-white hover:text-blue-200 transition-colors duration-200 font-medium" data-i18n="home">首页</a>
+                    <a href="about.html" class="text-white hover:text-blue-200 transition-colors duration-200 font-medium" data-i18n="about">关于</a>
+                    <a href="privacy.html" class="text-white hover:text-blue-200 transition-colors duration-200 font-medium" data-i18n="privacy">隐私政策</a>
+                </div>
+                
+                <!-- Language Switcher will be inserted here by JavaScript -->
+                <div class="language-switcher"></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl md:text-6xl font-bold text-gray-900 mb-4 animate-float" data-i18n="title">m3u8在线播放器</h1>
+            <p class="text-xl text-gray-600 max-w-3xl mx-auto">专业的 M3U8 流媒体播放器，支持多种格式，提供流畅的观看体验</p>
+        </div>
+
+        <!-- Player Input Section -->
+        <div class="bg-white rounded-2xl shadow-xl p-6 mb-8 border border-gray-100">
+            <div class="flex flex-col sm:flex-row gap-4">
+                <input 
+                    type="text" 
+                    id="url" 
+                    value="https://test-streams.mux.dev/x36xhzz/x36xhzz.m3u8" 
+                    data-i18n="url_placeholder" 
+                    placeholder="请输入m3u8播放地址" 
+                    autocomplete="off"
+                    class="flex-1 px-4 py-3 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200 text-gray-700 placeholder-gray-400"
+                />
+                <button 
+                    onclick="play()" 
+                    class="bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white px-8 py-3 rounded-xl font-semibold transition-all duration-200 transform hover:scale-105 shadow-lg hover:shadow-xl flex items-center justify-center gap-2"
+                >
+                    <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM9.555 7.168A1 1 0 008 8v4a1 1 0 001.555.832l3-2a1 1 0 000-1.664l-3-2z" clip-rule="evenodd"/>
+                    </svg>
+                    <span data-i18n="play_button">播放</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Video Player -->
+        <div class="bg-black rounded-2xl shadow-2xl overflow-hidden mb-8">
+            <video 
+                id="player-container-id" 
+                preload="auto" 
+                playsinline 
+                webkit-playsinline 
+                class="w-full min-h-[400px] md:min-h-[500px]"
+            >
+            </video>
+        </div>
+
+        <!-- Content Sections -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-12">
+            <!-- Embed Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <h3 class="text-xl font-bold text-gray-900 mb-4" data-i18n="embed_website">嵌入网站</h3>
+                <div class="bg-gray-50 rounded-xl p-4 font-mono text-sm text-gray-700 overflow-x-auto">
+                    &lt;iframe src="https://recraftwebui.com/player.html?url=https://****index.m3u8"&gt;&lt;/iframe&gt;
+                </div>
+            </div>
+
+            <!-- Description Section -->
+            <div class="bg-white rounded-2xl shadow-lg p-6 border border-gray-100">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">功能特性</h3>
+                <p class="text-gray-600 leading-relaxed" data-i18n="description">
+                    M3U8Player 是一款实现 HTTP 实时流客户端的 Chrome 浏览器扩展工具。你可以播放 .m3u8 HTTP Live Streaming (HLS)。它依靠 HTML5
+                    视频和媒体源扩展进行播放。它的工作原理是将 MPEG-2 传输流和 AAC/MP3 流转换成 ISO BMFF (MP4) 片段。如果浏览器中有 Web Worker，可使用它异步执行转码。它还支持 HLS
+                    + fmp4。
+                </p>
+            </div>
+        </div>
+
+        <!-- M3U8 Information Section -->
+        <div class="bg-white rounded-2xl shadow-lg p-8 border border-gray-100 mb-12">
+            <h2 class="text-3xl font-bold text-gray-900 mb-6 text-center" data-i18n="what_is_m3u8">什么是m3u8文件?</h2>
+            
+            <div class="space-y-6 text-gray-600 leading-relaxed">
+                <p data-i18n="m3u8_explanation">
+                    文件扩展名为 <a href="https://en.wikipedia.org/wiki/M3U#M3U8" class="text-blue-600 hover:text-blue-800 underline">M3U8</a> 的文件是一种 UTF-8 编码的音频播放列表文件。它们是纯文本文件，音频和视频播放器都可以用它们来描述媒体文件的位置。
+                </p>
+                
+                <p data-i18n="m3u8_example">
+                    例如，一个 M3U8 文件可能会提供互联网电台的在线文件参考。另一个文件可能是在你的电脑上创建的，用于为你的个人音乐或一系列视频建立播放列表。
+                </p>
+                
+                <p data-i18n="m3u8_effect">
+                    无论哪种方式，效果都是一样的：你可以打开文件，快速轻松地开始播放播放列表指向的内容。如果你发现自己想反复听同一首歌，你可以制作一个 M3U8 文件，作为在媒体播放器中播放这些特定曲目的快捷方式。
+                </p>
+                
+                <p data-i18n="m3u8_paths">
+                    文件可以使用绝对路径、相对路径和 URL 来指向特定的媒体文件和/或媒体文件的整个文件夹。文件中的其他信息可能是描述文件内容的注释。
+                </p>
+                
+                <p data-i18n="m3u8_format">
+                    M3U8是一种播放多媒体列表的文件格式，它的设计初衷是为了播放音频文件，比如MP3，但是越来越多的软件现在用来播放视频文件列表，M3U8也可以指定在线流媒体音频源。很多<a href="http://recraftwebui.com" class="text-blue-600 hover:text-blue-800 underline">播放器</a>和软件都支持M3U8文件格式。
+                </p>
+            </div>
+        </div>
+
+        <!-- Quote Section -->
+        <div class="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-8 text-center mb-12 border border-blue-100">
+            <blockquote class="text-xl md:text-2xl text-gray-700 italic mb-4" data-i18n="quote">
+                "If something is important enough, even if the odds are against you, you should still do it."
+            </blockquote>
+            <p class="text-lg text-gray-600">
+                如果一件事情对你很重要，即使成功的概率很小，你也应该去做
+            </p>
+            <cite class="block mt-4 text-blue-600 font-semibold" data-i18n="quote_author">—— 埃隆马斯克</cite>
+        </div>
+
+        <!-- Footer -->
+        <footer class="text-center text-gray-500 space-y-4">
+            <p class="text-sm" data-i18n="disclaimer">资源来源于网络，如有侵权，请联系客服予以删除！</p>
+            <p class="text-sm" data-i18n="copyright">© 2019 - 2025</p>
+            
+            <div class="pt-4 border-t border-gray-200">
+                <p class="text-sm mb-3" data-i18n="friendly_links">友情链接：</p>
+                <div class="flex flex-wrap justify-center gap-4 text-sm">
+                    <a href="https://csdn.net" class="text-blue-600 hover:text-blue-800 transition-colors">CSDN</a>
+                    <a href="https://cnblogs.com" class="text-blue-600 hover:text-blue-800 transition-colors">博客园</a>
+                    <a href="https://zaixianps.net/" class="text-blue-600 hover:text-blue-800 transition-colors">在线ps</a>
+                    <a href="https://gitapp.cn" class="text-blue-600 hover:text-blue-800 transition-colors">程序设计网</a>
+                    <a href="https://recraftwebui.com/" class="text-blue-600 hover:text-blue-800 transition-colors">m3u8播放器</a>
+                </div>
+            </div>
+            
+            <div class="pt-4 border-t border-gray-200">
+                <div class="flex justify-center space-x-6 text-sm">
+                    <a href="index.html" class="text-gray-400 hover:text-gray-600 transition-colors" data-i18n="home">首页</a>
+                    <a href="about.html" class="text-gray-400 hover:text-gray-600 transition-colors" data-i18n="about">关于</a>
+                    <a href="privacy.html" class="text-gray-400 hover:text-gray-600 transition-colors" data-i18n="privacy">隐私政策</a>
+                </div>
+            </div>
+        </footer>
+    </div>
+ 
+
+ 
+
+    <script>
+
+        
+        var player = undefined;
+
+
+        function play() {
+            
+            let url = $("#url").val()
+
+            if(player === undefined) {
+                player = TCPlayer('player-container-id', {
+                sources: [{
+                    src: url,
+                }],
+                // licenseUrl需自己去腾讯云申请
+                licenseUrl: 'https://license.vod2.myqcloud.com/license/v2/1258141824_1/v_cube.license',
+            }); 
+            }
+
+
+            player.pause();
+            console.log(url)
+            player.src(url); // url 播放地址
+        }
+
+    </script>
+
+</body>
+
+</html>
