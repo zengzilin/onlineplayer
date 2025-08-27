@@ -1,0 +1,9 @@
+# Handle client-side routing
+/*    /index.html   200
+
+# Redirect old paths if any
+/about    /about.html   301
+/privacy  /privacy.html 301
+
+# Security headers
+/security.txt  /security.txt  200

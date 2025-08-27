@@ -5,7 +5,7 @@ Based on html + tencent sdk development of m3u8 online player, to achieve mp4, m
 
 ## Preview
 
-https://m3u8player.org/en
+https://recraftwebui.com
 
 
 ## Deployment steps
